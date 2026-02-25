@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CovertOps // SECURE TERMINAL</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- AES via CryptoJS CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+</head>
+
+<body>
+    <div class="overlay"></div>
+    <div class="scanline"></div>
+    <div class="glitch-layer" id="glitch-layer"></div>
+
+    <!-- ============================================================
+         LOGIN / ROLE MODAL
+    ============================================================ -->
+    <div id="login-modal" class="modal-backdrop">
+        <div class="modal-box">
+            <div class="modal-header">
+                <span class="modal-logo">◈ COVERTOPS ◈</span>
+                <div class="modal-subtitle">AUTHENTICATION REQUIRED // CLEARANCE: SIGMA-7</div>
+            </div>
+            <div class="modal-scanline"></div>
+            <div class="modal-form">
+                <div class="mf-group">
+                    <label>OPERATIVE_CALLSIGN:</label>
+                    <input type="text" id="login-callsign" placeholder="ENTER CALLSIGN..." maxlength="20">
+                </div>
+                <div class="mf-group">
+                    <label>MISSION_ROOM (code):</label>
+                    <input type="text" id="login-room" placeholder="e.g. ALPHA-7" maxlength="12">
+                </div>
+                <div class="mf-group">
+                    <label>OPERATIVE_ROLE:</label>
+                    <div class="role-selector">
+                        <label class="role-card commander" id="role-commander">
+                            <input type="radio" name="role" value="COMMANDER" checked>
+                            <span class="role-icon">⚔</span>
+                            <span class="role-name">COMMANDER</span>
+                            <span class="role-desc">TX + RX</span>
+                        </label>
+                        <label class="role-card agent" id="role-agent">
+                            <input type="radio" name="role" value="FIELD_AGENT">
+                            <span class="role-icon">🎯</span>
+                            <span class="role-name">FIELD_AGENT</span>
+                            <span class="role-desc">RX ONLY</span>
+                        </label>
+                    </div>
+                </div>
+                <button id="login-btn" class="btn warning"
+                    style="width:100%; margin-top:10px;">INITIATE_SECURE_SESSION</button>
+            </div>
+            <div class="modal-footer">ENCRYPTION: TIME_BASED_XOR // SIGMA-7 CLEARANCE ACTIVE</div>
+        </div>
+    </div>
+
+    <!-- ============================================================
+         MAIN APP
+    ============================================================ -->
+    <div class="container" id="main-app" style="display:none;">
+        <!-- HEADER -->
+        <header>
+            <h1>// COVERTOPS_SECURE_LINK //</h1>
+            <div class="status-bar">
+                <span id="connection-status">STATUS: STANDBY</span>
+                <span class="divider">|</span>
+                <span>ROOM: <span id="room-display">--</span></span>
+                <span class="divider">|</span>
+                <span>USERS: <span id="user-count">0</span></span>
+                <span class="divider">|</span>
+                <span id="role-badge">--</span>
+                <span class="divider">|</span>
+                <span>THREAT: <span id="threat-value">ALPHA</span></span>
+                <span class="divider">|</span>
+                <span>SIG: <span id="signal-bar">▮▮▮▮▯</span></span>
+                <span class="divider">|</span>
+                <span id="clock">00:00:00</span>
+            </div>
+        </header>
+
+        <!-- WORLD CLOCK PANEL -->
+        <section class="world-clock-panel">
+            <div class="wc-header">
+                <span>◈ GLOBAL_OPS_TIMEZONE_GRID ◈</span>
+                <span class="wc-ping" id="uptime-display">UPTIME: 00:00:00</span>
+            </div>
+            <div class="clock-grid">
+                <div class="tz-clock">
+                    <div class="tz-flag">🇺🇸</div><canvas class="analog-clock" id="clock-usa" width="80"
+                        height="80"></canvas>
+                    <div class="tz-info">
+                        <div class="tz-country">USA / WASHINGTON</div>
+                        <div class="tz-time" id="time-usa">--:--:--</div>
+                        <div class="tz-label">UTC-5 / EASTERN</div>
+                    </div>
+                </div>
+                <div class="tz-clock">
+                    <div class="tz-flag">🇬🇧</div><canvas class="analog-clock" id="clock-uk" width="80"
+                        height="80"></canvas>
+                    <div class="tz-info">
+                        <div class="tz-country">UK / LONDON</div>
+                        <div class="tz-time" id="time-uk">--:--:--</div>
+                        <div class="tz-label">UTC+0 / GMT</div>
+                    </div>
+                </div>
+                <div class="tz-clock">
+                    <div class="tz-flag">🇷🇺</div><canvas class="analog-clock" id="clock-russia" width="80"
+                        height="80"></canvas>
+                    <div class="tz-info">
+                        <div class="tz-country">RUSSIA / MOSCOW</div>
+                        <div class="tz-time" id="time-russia">--:--:--</div>
+                        <div class="tz-label">UTC+3 / MSK</div>
+                    </div>
+                </div>
+                <div class="tz-clock">
+                    <div class="tz-flag">🇮🇳</div><canvas class="analog-clock" id="clock-india" width="80"
+                        height="80"></canvas>
+                    <div class="tz-info">
+                        <div class="tz-country">INDIA / NEW DELHI</div>
+                        <div class="tz-time" id="time-india">--:--:--</div>
+                        <div class="tz-label">UTC+5:30 / IST</div>
+                    </div>
+                </div>
+                <div class="tz-clock">
+                    <div class="tz-flag">🇯🇵</div><canvas class="analog-clock" id="clock-japan" width="80"
+                        height="80"></canvas>
+                    <div class="tz-info">
+                        <div class="tz-country">JAPAN / TOKYO</div>
+                        <div class="tz-time" id="time-japan">--:--:--</div>
+                        <div class="tz-label">UTC+9 / JST</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- VITALS BAR -->
+        <div class="vitals-bar">
+            <div class="vital-item"><span class="vital-label">ENCRYPTION_ENTROPY</span>
+                <div class="vital-bar-wrap">
+                    <div class="vital-bar-fill" id="entropy-bar" style="width:87%"></div>
+                </div><span class="vital-val" id="entropy-val">87%</span>
+            </div>
+            <div class="vital-item"><span class="vital-label">NET_LATENCY</span>
+                <div class="vital-bar-wrap">
+                    <div class="vital-bar-fill green" id="latency-bar" style="width:12%"></div>
+                </div><span class="vital-val" id="latency-val">12ms</span>
+            </div>
+            <div class="vital-item"><span class="vital-label">SECURE_CHANNEL</span>
+                <div class="vital-bar-wrap">
+                    <div class="vital-bar-fill blue" style="width:100%"></div>
+                </div><span class="vital-val">AES-GCM</span>
+            </div>
+            <div class="vital-item"><span class="vital-label">PACKET_INTEGRITY</span>
+                <div class="vital-bar-wrap">
+                    <div class="vital-bar-fill" id="packet-bar" style="width:99%"></div>
+                </div><span class="vital-val" id="packet-val">99.8%</span>
+            </div>
+        </div>
+
+        <!-- MAIN PANELS -->
+        <main>
+            <!-- ══════════════════════════════════════════
+                 TRANSMITTER PANEL
+            ══════════════════════════════════════════ -->
+            <section class="panel" id="transmitter">
+                <h2>[ TRANSMISSION_MODULE ] <span class="module-id">MOD-TX-01</span></h2>
+
+                <!-- Role lock notice -->
+                <div id="role-lock-notice" class="role-lock-banner" style="display:none;">
+                    ⛔ FIELD_AGENT: TRANSMISSION RESTRICTED — RX ONLY
+                </div>
+
+                <!-- Algorithm Selector -->
+                <div class="input-group">
+                    <label>CIPHER_ALGORITHM:</label>
+                    <div class="algo-selector" id="algo-selector">
+                        <button class="algo-btn active" data-algo="XOR">XOR</button>
+                        <button class="algo-btn" data-algo="CAESAR">CAESAR</button>
+                        <button class="algo-btn" data-algo="VIGENERE">VIGENÈRE</button>
+                        <button class="algo-btn" data-algo="AES">AES-256</button>
+                    </div>
+                </div>
+
+                <!-- Voice + Text -->
+                <div class="control-group">
+                    <button id="mic-btn" class="btn">INIT_VOICE_CAPTURE</button>
+                    <span id="mic-status">MIC: OFF</span>
+                </div>
+
+                <div class="input-group">
+                    <label>PLAINTEXT_BUFFER:</label>
+                    <textarea id="plaintext-input" placeholder="Initiate speech or enter text manually..."></textarea>
+                </div>
+
+                <!-- Options row -->
+                <div class="options-row">
+                    <label class="toggle-label">
+                        <input type="checkbox" id="otp-toggle">
+                        <span class="toggle-text">ONE_TIME_PAD</span>
+                    </label>
+                    <label class="toggle-label">
+                        <input type="checkbox" id="destruct-toggle">
+                        <span class="toggle-text">SELF_DESTRUCT</span>
+                    </label>
+                    <div id="destruct-timer-group" style="display:none;">
+                        <input type="number" id="destruct-seconds" value="10" min="1" max="300" style="width:60px;">
+                        <span style="font-size:0.7rem; color:var(--text-muted);">SEC</span>
+                    </div>
+                </div>
+
+                <!-- Schedule + Time Lock -->
+                <div class="control-group">
+                    <button id="encrypt-btn" class="btn warning">ENCRYPT_AND_TRANSMIT</button>
+                    <div class="time-lock-group">
+                        <div style="margin-bottom:4px;">
+                            <label>SCHEDULE_DELIVERY:</label>
+                            <input type="datetime-local" id="schedule-input" style="width:190px;">
+                        </div>
+                        <div>
+                            <label>TIME_LOCK (SEC):</label>
+                            <input type="number" id="time-lock-input" value="0" min="0" style="width:70px;">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Key display + strength -->
+                <div class="key-display">
+                    <label>SESSION_KEY_GENERATED:</label>
+                    <span id="generated-key">NULL</span>
+                    <div class="key-strength-wrap">
+                        <div class="key-strength-bar">
+                            <div class="key-strength-fill" id="key-strength-fill"></div>
+                        </div>
+                        <span class="key-strength-label" id="key-strength-label">--</span>
+                    </div>
+                </div>
+
+                <!-- Entropy Visualizer -->
+                <div class="entropy-visualizer">
+                    <div class="ev-label">ENTROPY_STREAM:</div>
+                    <div class="ev-grid" id="ev-grid"></div>
+                </div>
+
+                <!-- Benchmark -->
+                <div class="benchmark-row">
+                    <span>ENCRYPT_TIME: <span id="bench-enc">--</span> µs</span>
+                    <span>HAMMING_DIST: <span id="hamming-dist">--</span> bits</span>
+                </div>
+
+                <div class="output-group">
+                    <label>OUTGOING_CIPHERTEXT:</label>
+                    <div id="outgoing-cipher" class="code-block"></div>
+                </div>
+
+                <!-- Cipher Comparison -->
+                <div class="cipher-compare-section">
+                    <div class="section-toggle" id="compare-toggle">▶ CIPHER_COMPARISON_MATRIX</div>
+                    <div id="compare-panel" style="display:none;">
+                        <div class="compare-grid">
+                            <div class="compare-col">
+                                <div class="compare-head">XOR</div>
+                                <div class="compare-val" id="cmp-xor">--</div>
+                            </div>
+                            <div class="compare-col">
+                                <div class="compare-head">CAESAR</div>
+                                <div class="compare-val" id="cmp-caesar">--</div>
+                            </div>
+                            <div class="compare-col">
+                                <div class="compare-head">VIGENÈRE</div>
+                                <div class="compare-val" id="cmp-vig">--</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Brute-Force Simulation -->
+                <div class="bruteforce-section">
+                    <div class="section-toggle" id="bf-toggle">▶ SIMULATE_BRUTE_FORCE_ATTACK</div>
+                    <div id="bf-panel" style="display:none;">
+                        <div class="bf-console" id="bf-console"></div>
+                        <div class="control-group" style="margin-top:6px;">
+                            <button class="btn dim" id="bf-start-btn">RUN_ATTACK_SIM</button>
+                            <button class="btn dim" id="bf-stop-btn" disabled>ABORT</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ══════════════════════════════════════════
+                 RECEIVER PANEL
+            ══════════════════════════════════════════ -->
+            <section class="panel" id="receiver">
+                <h2>[ RECEPTION_MODULE ] <span class="module-id">MOD-RX-01</span></h2>
+
+                <!-- Signal Waveform -->
+                <div class="signal-waveform">
+                    <canvas id="waveform-canvas" width="400" height="40"></canvas>
+                </div>
+
+                <!-- Sender info -->
+                <div class="sender-info" id="sender-info" style="display:none;">
+                    <span>FROM: <span id="sender-callsign">--</span></span>
+                    <span class="divider">|</span>
+                    <span>ALGO: <span id="rx-algo">--</span></span>
+                    <span class="divider">|</span>
+                    <span id="read-receipt-status">STATUS: PENDING</span>
+                </div>
+
+                <!-- Self-destruct countdown -->
+                <div id="destruct-countdown" class="destruct-banner" style="display:none;">
+                    ⚠ SELF_DESTRUCT IN: <span id="destruct-timer-display">--</span>s
+                </div>
+
+                <div class="input-group">
+                    <label>INCOMING_CIPHERTEXT:</label>
+                    <div id="incoming-cipher" class="code-block empty">...Waiting for transmission...</div>
+                </div>
+
+                <div class="input-group">
+                    <label>INCOMING_KEY_STATUS:</label>
+                    <div id="incoming-key-display" class="code-block empty">...Waiting for key...</div>
+                </div>
+
+                <div class="control-group">
+                    <label>DECRYPTION_KEY:</label>
+                    <input type="text" id="decryption-key-input" placeholder="ENTER_KEY">
+                    <button id="decrypt-btn" class="btn success">DECRYPT_MESSAGE</button>
+                </div>
+
+                <!-- Utility buttons -->
+                <div class="control-group">
+                    <button id="autofill-btn" class="btn dim">AUTO_FILL_KEY</button>
+                    <button id="clear-btn" class="btn dim">CLEAR_TERMINAL</button>
+                    <button id="copy-cipher-btn" class="btn dim">COPY_CIPHER</button>
+                </div>
+
+                <!-- Benchmark -->
+                <div class="benchmark-row">
+                    <span>DECRYPT_TIME: <span id="bench-dec">--</span> µs</span>
+                    <span>OTP_STATUS: <span id="otp-status">INACTIVE</span></span>
+                </div>
+
+                <div class="output-group">
+                    <label>DECRYPTED_PAYLOAD:</label>
+                    <div id="decrypted-output" class="code-block output-terminal"></div>
+                </div>
+
+                <!-- Frequency Analysis -->
+                <div class="cipher-compare-section">
+                    <div class="section-toggle" id="freq-toggle">▶ FREQUENCY_ANALYSIS_CHART</div>
+                    <div id="freq-panel" style="display:none;">
+                        <canvas id="freq-canvas" width="400" height="120"></canvas>
+                        <div class="freq-note">Character frequency distribution of ciphertext (ideal: flat = good
+                            encryption)</div>
+                    </div>
+                </div>
+
+                <!-- Message Log -->
+                <div class="msg-log-section">
+                    <label>INTERCEPT_LOG [<span id="log-count">0</span>]:</label>
+                    <div id="message-log" class="msg-log"></div>
+                </div>
+            </section>
+        </main>
+
+        <!-- ══════════════════════════════════════════
+             MESSAGE HISTORY PANEL (full width)
+        ══════════════════════════════════════════ -->
+        <section class="history-panel">
+            <div class="section-toggle" id="history-toggle">▶ MESSAGE_HISTORY_ARCHIVE [<span
+                    id="history-count">0</span>]</div>
+            <div id="history-panel-body" style="display:none;">
+                <table class="history-table" id="history-table">
+                    <thead>
+                        <tr>
+                            <th>TIMESTAMP</th>
+                            <th>FROM</th>
+                            <th>ALGO</th>
+                            <th>KEY</th>
+                            <th>CIPHER (PREVIEW)</th>
+                            <th>STATUS</th>
+                        </tr>
+                    </thead>
+                    <tbody id="history-tbody"></tbody>
+                </table>
+            </div>
+        </section>
+
+        <footer>
+            <span>SECURITY_LEVEL: TOP_SECRET // CLEARANCE: SIGMA-7</span>
+            <span id="session-id">SESSION: INIT...</span>
+            <span>ENCRYPTION: TIME_BASED_MULTI_CIPHER</span>
+        </footer>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="script.js"></script>
+</body>
+
+</html>
