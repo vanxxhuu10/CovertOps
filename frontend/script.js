@@ -123,14 +123,46 @@ loginBtn.addEventListener('click', () => {
 });
 
 // ── SOCKET ROOM EVENTS ───────────────────────────────────────────
-socket.on('join-ack', ({ roomCode, userCount }) => {
+socket.on('join-ack', ({ roomCode, userCount, members }) => {
     userCountEl.textContent = userCount;
+    renderMemberRoster(members || []);
     addLog(`ROOM ${roomCode}: JOINED. USERS: ${userCount}`);
 });
 
-socket.on('room-info', ({ userCount }) => {
+socket.on('room-info', ({ userCount, members }) => {
     userCountEl.textContent = userCount;
+    if (members) renderMemberRoster(members);
 });
+
+// ── MESSAGE HISTORY REPLAY (from DB on join) ──────────────────────
+socket.on('message-history', (messages) => {
+    if (!messages || messages.length === 0) return;
+    addLog(`DB_RESTORE: ${messages.length} MESSAGES LOADED FROM VAULT`);
+    messages.forEach(msg => {
+        addToHistory({
+            from:   msg.sender,
+            algo:   msg.algo,
+            key:    msg.key,
+            cipher: msg.cipher,
+            status: msg.destroyed ? 'destroyed' : msg.readBy && msg.readBy.length > 0 ? 'decrypted' : 'received',
+            msgId:  msg.messageId,
+        });
+    });
+});
+
+// ── MEMBER ROSTER RENDERER ────────────────────────────────────────
+function renderMemberRoster(members) {
+    const roster = document.getElementById('member-roster');
+    if (!roster) return;
+    roster.innerHTML = '';
+    members.forEach(m => {
+        const pill = document.createElement('span');
+        pill.className = `member-pill ${m.isOnline ? 'online' : 'offline'} ${m.role === 'COMMANDER' ? 'cmd' : ''}`;
+        pill.textContent = `${m.isOnline ? '●' : '○'} ${m.callsign} [${m.role === 'COMMANDER' ? 'CMD' : 'AGT'}]`;
+        pill.title = `Role: ${m.role}\nStatus: ${m.isOnline ? 'ONLINE' : 'OFFLINE'}`;
+        roster.appendChild(pill);
+    });
+}
 
 // ── ALGORITHM SELECTOR ───────────────────────────────────────────
 document.querySelectorAll('.algo-btn').forEach(btn => {
