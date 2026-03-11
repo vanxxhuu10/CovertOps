@@ -64,7 +64,7 @@
     <div class="container" id="main-app" style="display:none;">
         <!-- HEADER -->
         <header>
-            <h1>// COVERTOPS_SECURE_LINK //</h1>
+            <h1>COVERTOPS </h1>
             <div class="status-bar">
                 <span id="connection-status">STATUS: STANDBY</span>
                 <span class="divider">|</span>
@@ -207,10 +207,6 @@
                 <!-- Options row -->
                 <div class="options-row">
                     <label class="toggle-label">
-                        <input type="checkbox" id="otp-toggle">
-                        <span class="toggle-text">ONE_TIME_PAD</span>
-                    </label>
-                    <label class="toggle-label">
                         <input type="checkbox" id="destruct-toggle">
                         <span class="toggle-text">SELF_DESTRUCT</span>
                     </label>
@@ -227,6 +223,15 @@
                         <div style="margin-bottom:4px;">
                             <label>SCHEDULE_DELIVERY:</label>
                             <input type="datetime-local" id="schedule-input" style="width:190px;">
+                            <select id="schedule-tz"
+                                style="width: 190px; margin-top: 4px; padding: 5px; font-size: 0.7rem;">
+                                <option value="LOCAL">LOCAL SYSTEM TIME</option>
+                                <option value="America/New_York">USA (EASTERN)</option>
+                                <option value="Europe/London">UK (GMT)</option>
+                                <option value="Europe/Moscow">RUSSIA (MSK)</option>
+                                <option value="Asia/Kolkata">INDIA (IST)</option>
+                                <option value="Asia/Tokyo">JAPAN (JST)</option>
+                            </select>
                         </div>
                         <div>
                             <label>TIME_LOCK (SEC):</label>

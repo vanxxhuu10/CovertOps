@@ -1,0 +1,101 @@
+\documentclass[conference]{IEEEtran}
+\IEEEoverridecommandlockouts
+\usepackage{cite}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{algorithmic}
+\usepackage{graphicx}
+\usepackage{textcomp}
+\usepackage{xcolor}
+\def\BibTeX{{\rm B\kern-.05em{\sc i\kern-.025em b}\kern-.08em
+    T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
+\begin{document}
+
+\title{CovertOps: A Secure, Multi-Cipher Real-Time Communication Terminal}
+
+\author{\IEEEauthorblockN{Vansh Srivastava}
+\IEEEauthorblockA{\textit{Vellore Institute of Technology} \\
+Vellore, India \\
+vansh.srivastava@example.com}
+}
+
+\maketitle
+
+\begin{abstract}
+As digital communication increasingly becomes intercepted and analyzed by unauthorized entities, the need for robust, multi-layered encrypted platforms has grown. This paper presents CovertOps, a secure, real-time tactical communication terminal designed to simulate high-security military and intelligence data transmission. The system integrates various cryptographic algorithms, including XOR, Caesar, Vigenère, and AES-256, allowing operatives to select encryption methods dynamically. Furthermore, CovertOps implements advanced operational security features such as One-Time Pads (OTP), message self-destruction, scheduled time-locked deliveries mapped across global timezones, and built-in cryptographic analysis tools like frequency analysis and brute-force simulations. Built on a Node.js and Socket.IO architecture with MongoDB persistence, CovertOps demonstrates a scalable, resilient framework for secure tactical data streaming.
+\end{abstract}
+
+\begin{IEEEkeywords}
+Cryptography, Real-time Communication, Socket.IO, AES-256, One-Time Pad, Operational Security, Node.js
+\end{IEEEkeywords}
+
+\section{Introduction}
+Modern communication platforms primarily rely on standardized end-to-end encryption protocols like TLS and Signal Protocol. While effective for civilian use, tactical and military operations often require specialized terminals that provide operators with granular control over cryptographic algorithms, message lifespans, and access control. Furthermore, educational platforms demonstrating the underlying mechanics of classical and modern ciphers are crucial for training cybersecurity personnel.
+
+This paper introduces \textit{CovertOps}, a web-based secure terminal designed to address these requirements. Operating under a simulated high-clearance environment, the platform facilitates real-time, encrypted message exchanges within mission-specific ``rooms.'' It provides a comprehensive suite of cryptographic tools, allowing users to not only transmit secure data but also analyze ciphertext using frequency distribution charts and brute-force attack simulations.
+
+\section{System Architecture}
+
+The CovertOps architecture is divided into a robust client-side tactical interface and a lightweight, event-driven server backend.
+
+\subsection{Backend Infrastructure}
+The server is built utilizing Node.js and Express.js, providing a REST API alongside real-time WebSocket capabilities powered by Socket.IO. 
+\begin{itemize}
+    \item \textbf{Real-Time Event Engine:} Socket.IO handles the bidirectional, low-latency transmission of ciphertexts across operational rooms.
+    \item \textbf{Persistence Layer:} MongoDB is utilized to persist room states, member rosters, and encrypted message histories. It ensures that operatives joining an ongoing mission can securely sync the latest transmissions.
+    \item \textbf{Server-Side Validation:} The backend strictly enforces One-Time Pad (OTP) key consumption, ensuring that burned keys cannot be reused, even if client-side logic is bypassed.
+\end{itemize}
+
+\subsection{Client-Side Terminal}
+The frontend dictates the user experience, utilizing vanilla HTML, CSS, and JavaScript to deliver an immersive, terminal-like overlay. The UI emphasizes operational awareness, featuring live latency monitoring, entropy visualization, and global timezone clocks for coordinated scheduling. Responsive CSS media queries ensure the terminal is fully accessible on mobile devices and Android platforms.
+
+\section{Cryptographic Modules}
+
+CovertOps integrates both classical ciphers (for educational and low-entropy tactical scenarios) and modern encryption standards.
+
+\subsection{Classical Ciphers}
+\begin{enumerate}
+    \item \textbf{XOR Cipher:} A fundamental bitwise operation cipher, providing fast execution and demonstrating the basis of stream ciphers.
+    \item \textbf{Caesar Cipher:} A substitution cipher shifting characters by a fixed offset.
+    \item \textbf{Vigenère Cipher:} A polyalphabetic substitution cipher, improving upon Caesar by utilizing a variable-length keyword to resist basic frequency analysis.
+\end{enumerate}
+
+\subsection{Modern Encryption (AES-256)}
+For high-threat environments, CovertOps incorporates the Advanced Encryption Standard (AES) operating with 256-bit keys. The implementation utilizes the CryptoJS library to execute AES-256 encryption within the browser environment, ensuring plaintext never touches the server.
+
+\subsection{One-Time Pad (OTP) Protocol}
+The system features an OTP enforcement mode. When engaged, the system guarantees perfect secrecy by ensuring the decryption key is mathematically unbreakable, provided the key is truly random, used only once, and kept secret. The CovertOps backend tracks consumed OTP keys in memory and the database to actively block reuse attempts (``burned keys'').
+
+\section{Advanced Tactical Features}
+
+Beyond basic encryption, the terminal provides several features tailored for operational security (OPSEC).
+
+\subsection{Self-Destructing Payloads}
+Senders can attach a time-to-live (TTL) parameter to messages. Upon successful decryption by the recipient, a countdown is initiated. Once the timer expires, the payload and key are wiped from the client's DOM and flagged as destroyed within the MongoDB vault.
+
+\subsection{Global Timezone Scheduling}
+Messages can be encrypted and scheduled for future delivery. Operatives can map the delivery time accurately across multiple global timezones (e.g., IST, JST, EST, MSK) utilizing a localized timezone conversion algorithm. The message remains locked in the recipient's terminal until the global release epoch is reached.
+
+\subsection{Cryptanalysis Tools}
+CovertOps serves as a training ground for cryptanalysts:
+\begin{itemize}
+    \item \textbf{Frequency Analysis:} An HTML5 Canvas-based chart dynamically updates to show the character distribution of incoming ciphertexts, allowing operators to visually gauge encryption entropy.
+    \item \textbf{Brute-Force Simulator:} Users can simulate a brute-force attack against intercepted Caesar-ciphered messages, iterating through all 26 possible shifts to retrieve the plaintext.
+\end{itemize}
+
+\section{Performance Optimization}
+
+To support mobile operatives, particularly on Android devices, frontend latency optimizations were heavily prioritized. The signal waveform visualization utilizes \texttt{requestAnimationFrame} with dynamic throttling—operating at 30 FPS during active transmission and dropping to 5 FPS while idle. System visualizers and timezone clocks implement similar event-loop optimizations to reduce CPU load and preserve battery life without sacrificing the tactical aesthetic.
+
+\section{Conclusion}
+The CovertOps project successfully demonstrates a highly interactive, secure communication terminal. By bridging educational cryptanalysis tools with functional, real-time AES encryption and OPSEC protocols like OTP and self-destructing messages, it provides a comprehensive environment for secure data exchange. Future iterations aim to integrate Elliptic Curve Cryptography (ECC) for secure key exchange and decentralize the backend architecture using WebRTC for peer-to-peer data channels.
+
+\begin{thebibliography}{00}
+\bibitem{node} Node.js Foundation, ``Node.js Documentation,'' [Online]. Available: https://nodejs.org/docs/
+\bibitem{socket} Socket.IO, ``Socket.IO Real-time Engine,'' [Online]. Available: https://socket.io/
+\bibitem{cryptojs} E. Roza, ``CryptoJS - JavaScript Library of Crypto Standards,'' [Online]. Available: https://cryptojs.gitbook.io/
+\bibitem{mongo} MongoDB Inc., ``MongoDB Core Documentation,'' [Online]. Available: https://docs.mongodb.com/
+\bibitem{aes} National Institute of Standards and Technology (NIST), ``Advanced Encryption Standard (AES),'' FIPS PUB 197, 2001.
+\bibitem{otp} C. E. Shannon, ``Communication Theory of Secrecy Systems,'' Bell System Technical Journal, vol. 28, no. 4, pp. 656-715, Oct. 1949.
+\end{thebibliography}
+
+\end{document}

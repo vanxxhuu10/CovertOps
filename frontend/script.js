@@ -47,6 +47,7 @@ const clockDisplay      = document.getElementById('clock');
 const connectionStatus  = document.getElementById('connection-status');
 const scheduleInput     = document.getElementById('schedule-input');
 const timeLockInput     = document.getElementById('time-lock-input');
+const scheduleTzSelect  = document.getElementById('schedule-tz');
 const incomingKeyDisplay= document.getElementById('incoming-key-display');
 const signalBar         = document.getElementById('signal-bar');
 const glitchLayer       = document.getElementById('glitch-layer');
@@ -57,8 +58,6 @@ const messageLogEl      = document.getElementById('message-log');
 const autofillBtn       = document.getElementById('autofill-btn');
 const clearBtn          = document.getElementById('clear-btn');
 const copyCipherBtn     = document.getElementById('copy-cipher-btn');
-const otpToggle         = document.getElementById('otp-toggle');
-const otpStatusEl       = document.getElementById('otp-status');
 const destructToggle    = document.getElementById('destruct-toggle');
 const destructTimerGroup= document.getElementById('destruct-timer-group');
 const destructSeconds   = document.getElementById('destruct-seconds');
@@ -429,8 +428,31 @@ encryptBtn.addEventListener('click', () => {
     triggerGlitch();
     wfActive = true; setTimeout(() => { wfActive = false; }, 1500);
 
-    const scheduledTime = scheduleInput.value ? new Date(scheduleInput.value).toISOString() : null;
-    const effectiveTime = scheduledTime ? new Date(scheduledTime).getTime() : Date.now();
+
+    let scheduledTime = null;
+    let effectiveTime = Date.now();
+    
+    if (scheduleInput.value) {
+        const tz = scheduleTzSelect ? scheduleTzSelect.value : 'LOCAL';
+        if (tz === 'LOCAL') {
+            scheduledTime = new Date(scheduleInput.value).toISOString();
+            effectiveTime = new Date(scheduleInput.value).getTime();
+        } else {
+            // JS Date parsing hack to interpret local datetime string as another timezone
+            // We find the offset between the target timezone and UTC at the given time
+            const localDate = new Date(scheduleInput.value);
+            const targetTimeStr = localDate.toLocaleString("en-US", {timeZone: tz});
+            const targetDate = new Date(targetTimeStr);
+             
+            // The difference between the local parse and the target timezone parse
+            // gives us the offset we need to apply to make the epoch time representing the
+            // target timezone equal to what it would be in UTC
+            const diff = localDate.getTime() - targetDate.getTime();
+            effectiveTime = localDate.getTime() + diff;
+            scheduledTime = new Date(effectiveTime).toISOString();
+        }
+    }
+
     const lockSec = parseInt(timeLockInput.value) || 0;
     const releaseTime = effectiveTime + lockSec * 1000;
     const msgId = `TX-${Date.now()}`;
@@ -668,6 +690,7 @@ const TIMEZONES = [
     { tz:'Asia/Tokyo',       canvasId:'clock-japan',  timeId:'time-japan'  },
 ];
 function drawAnalogClock(canvas, date, tz) {
+    if (canvas.clientWidth === 0) return; // Skip drawing if hidden
     const ctx = canvas.getContext('2d');
     const W = canvas.width, H = canvas.height, cx = W/2, cy = H/2, r = W/2 - 4;
     const t = date.toLocaleTimeString('en-US', { timeZone: tz, hour:'2-digit', minute:'2-digit', second:'2-digit', hour12:false });
@@ -716,24 +739,35 @@ setInterval(() => {
         c.style.height=(Math.random()*14+3)+'px';
         const r=Math.random(); c.style.background=r>0.85?'#ff9900':r>0.7?'#00cfff':'#00ff41';
     });
-}, 200);
+}, 800);
 
 // ── SIGNAL WAVEFORM ───────────────────────────────────────────────
 const wfCtx = wfCanvas.getContext('2d');
 let wfPhase = 0, wfActive = false;
-function drawWaveform() {
-    const W=wfCanvas.width, H=wfCanvas.height;
-    wfCtx.clearRect(0,0,W,H);
-    wfCtx.beginPath(); wfCtx.strokeStyle='#00ff41'; wfCtx.lineWidth=1.5; wfCtx.shadowBlur=4; wfCtx.shadowColor='#00ff41';
-    for (let x=0;x<W;x++) {
-        const amp = wfActive ? (8+6*Math.sin(x*0.3)) : 3;
-        const y = H/2 + amp*Math.sin((x*0.05)+wfPhase) + (Math.random()-0.5)*(wfActive?6:2);
-        x===0 ? wfCtx.moveTo(x,y) : wfCtx.lineTo(x,y);
+let lastWfTime = 0;
+function drawWaveform(timestamp) {
+    if (!lastWfTime) lastWfTime = timestamp;
+    const elapsed = timestamp - lastWfTime;
+    
+    // Throttle rendering: 30fps when active, 5fps when idle
+    const throttleMs = wfActive ? 33 : 200;
+    
+    if (elapsed > throttleMs) {
+        lastWfTime = timestamp;
+        const W=wfCanvas.width, H=wfCanvas.height;
+        wfCtx.clearRect(0,0,W,H);
+        wfCtx.beginPath(); wfCtx.strokeStyle='#00ff41'; wfCtx.lineWidth=1.5; wfCtx.shadowBlur=4; wfCtx.shadowColor='#00ff41';
+        for (let x=0;x<W;x++) {
+            const amp = wfActive ? (8+6*Math.sin(x*0.3)) : 3;
+            const y = H/2 + amp*Math.sin((x*0.05)+wfPhase) + (Math.random()-0.5)*(wfActive?6:2);
+            x===0 ? wfCtx.moveTo(x,y) : wfCtx.lineTo(x,y);
+        }
+        wfCtx.stroke(); wfCtx.shadowBlur=0;
+        wfPhase += wfActive ? 0.2 : 0.05;
     }
-    wfCtx.stroke(); wfCtx.shadowBlur=0;
-    wfPhase += wfActive ? 0.2 : 0.05;
+    requestAnimationFrame(drawWaveform);
 }
-setInterval(drawWaveform, 50);
+requestAnimationFrame(drawWaveform);
 
 // ── GLITCH ────────────────────────────────────────────────────────
 function triggerGlitch() { glitchLayer.classList.add('active'); setTimeout(()=>glitchLayer.classList.remove('active'),200); }

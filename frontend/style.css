@@ -1350,3 +1350,116 @@ footer {
 ::-webkit-scrollbar-thumb:hover {
     background: rgba(111, 191, 122, 0.4);
 }
+/* -- RESPONSIVE DESIGN (MOBILE / ANDROID) ------------------ */
+@media screen and (max-width: 900px) {
+    main {
+        grid-template-columns: 1fr;
+    }
+    .clock-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+@media screen and (max-width: 768px) {
+    body {
+        font-size: 11px;
+    }
+    .container {
+        padding: 8px 10px;
+    }
+    .modal-box {
+        width: 90%;
+        padding: 24px 16px;
+    }
+    .role-selector {
+        grid-template-columns: 1fr;
+    }
+    header {
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 12px;
+        gap: 10px;
+    }
+    .status-bar {
+        flex-wrap: wrap;
+        gap: 4px 8px;
+    }
+    .clock-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    .vitals-bar {
+        grid-template-columns: 1fr 1fr;
+    }
+    .compare-grid {
+        grid-template-columns: 1fr;
+    }
+    .options-row {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+    .time-lock-group {
+        flex-direction: column;
+        align-items: flex-start;
+        width: 100%;
+    }
+    .time-lock-group div {
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+        margin-bottom: 8px;
+    }
+    .time-lock-group input {
+        width: 100% !important;
+    }
+    .control-group .btn {
+        flex: 1;
+        text-align: center;
+    }
+    .algo-selector {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        width: 100%;
+    }
+    .algo-btn {
+        text-align: center;
+    }
+    #mic-btn, #encrypt-btn, #decrypt-btn {
+        width: 100%;
+    }
+    .benchmark-row, .sender-info {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+}
+
+@media screen and (max-width: 480px) {
+    .clock-grid {
+        grid-template-columns: 1fr;
+    }
+    .vitals-bar {
+        grid-template-columns: 1fr;
+    }
+    .history-table th, .history-table td {
+        font-size: 0.5rem;
+        padding: 4px;
+    }
+}
+
+/* -- TIMEZONE SCHEDULE SELECTOR ---------------------------------- */
+#schedule-tz {
+    background: rgba(8, 14, 10, 0.8);
+    border: 1px solid rgba(111, 191, 122, 0.14);
+    border-bottom: 1px solid var(--primary-border);
+    color: var(--text-main);
+    font-family: inherit;
+    outline: none;
+    transition: all 0.25s ease;
+    border-radius: 1px;
+}
+#schedule-tz:focus {
+    border-color: var(--primary-border);
+    border-bottom-color: var(--primary);
+    background: rgba(111, 191, 122, 0.03);
+    box-shadow: 0 2px 12px rgba(111, 191, 122, 0.1);
+}
